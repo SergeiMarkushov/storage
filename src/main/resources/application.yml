@@ -1,0 +1,30 @@
+server:
+  port: 8443
+  ssl:
+    key-store: src/main/resources/jks/local/mykeystore.jks
+    key-store-password: password
+    key-password: password
+    key-alias: myalias
+
+#подключение к h2 https://localhost:8443/h2-console
+spring:
+  application:
+    name: storage
+  datasource:
+    url: jdbc:h2:mem:cloud_storage
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: pw
+
+  flyway:
+    baselineOnMigrate: true
+    url: jdbc:h2:mem:cloud_storage
+    user: sa
+    password: pw
+    validateOnMigrate: false
+
+  jpa:
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
