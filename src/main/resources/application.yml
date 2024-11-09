@@ -10,20 +10,41 @@ server:
 spring:
   application:
     name: storage
+  #  datasource:
+  #    url: jdbc:h2:mem:cloud_storage
+  #    driver-class-name: org.h2.Driver
+  #    username: sa
+  #    password: pw
+
   datasource:
-    url: jdbc:h2:mem:cloud_storage
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: pw
+    url: jdbc:postgresql://localhost:5432/cloud_storage?currentSchema=cloud_storage
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: password
+
+  #  flyway:
+  #    baselineOnMigrate: true
+  #    url: jdbc:h2:mem:cloud_storage
+  #    user: sa
+  #    password: pw
+  #    validateOnMigrate: false
 
   flyway:
     baselineOnMigrate: true
-    url: jdbc:h2:mem:cloud_storage
-    user: sa
-    password: pw
+    url: jdbc:postgresql://localhost:5432/cloud_storage?currentSchema=cloud_storage
+    user: postgres
+    password: password
     validateOnMigrate: false
 
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: none
+
+  servlet:
+    multipart:
+      max-file-size: 1000MB
+      max-request-size: 1000MB
+  web:
+    resources:
+      static-locations: classpath:/static, file:${user.home}/uploads/Nik

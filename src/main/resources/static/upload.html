@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>File Upload and Download</title>
+</head>
+<body>
+<h1>File Upload and Download</h1>
+
+<!-- Форма для загрузки файлов -->
+<form id="uploadForm">
+    <label for="fileInput">Choose files to upload:</label>
+    <input id="fileInput" multiple name="files" type="file">
+    <button onclick="uploadFiles()" type="button">Upload</button>
+</form>
+<p id="uploadStatus"></p>
+
+<!-- Прогресс-бар для загрузки -->
+<progress id="uploadProgressBar" max="100" style="display: none;" value="0"></progress>
+
+<!-- Список файлов для скачивания -->
+<h2>Available Files</h2>
+<ul id="fileList"></ul>
+
+<!-- Прогресс-бар для скачивания -->
+<progress id="downloadProgressBar" max="100" style="display: none;" value="0"></progress>
+
+<script src="upload.js"></script>
+</body>
+</html>
