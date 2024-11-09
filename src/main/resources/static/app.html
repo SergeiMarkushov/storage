@@ -1,0 +1,37 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Media Gallery</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+<div class="sidebar">
+    <nav class="nav">
+        <a href="#">Мои фото</a>
+        <a href="#">Мои документы</a>
+        <a href="#">Все фото</a>
+        <a href="#">Все документы</a>
+        <!--        <a href="#">Кнопка 5</a>-->
+    </nav>
+    <div class="storage-info">
+        <p>Свободное место: 50GB</p>
+    </div>
+</div>
+<div class="main-content">
+    <h1>Media Gallery</h1>
+    <div class="gallery" id="gallery"></div>
+</div>
+
+<!-- Модальное окно -->
+<div class="modal" id="modal">
+    <span class="close">×</span>
+    <div class="modal-content">
+        <img class="modal-media" id="modalImage" style="display: none;">
+        <video class="modal-media" controls id="modalVideo" style="display: none;"></video>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
