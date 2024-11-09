@@ -11,6 +11,9 @@ public class FileMetadataConverter {
         dto.setId(fileMetadata.getId());
         dto.setOriginFileName(fileMetadata.getOriginFileName());
         dto.setUniqueFileName(fileMetadata.getUniqueFileName());
+        dto.setFileSize(fileMetadata.getFileSize());
+        dto.setFileType(fileMetadata.getFileType());
+        dto.setUploadDate(fileMetadata.getUploadDate());
         return dto;
     }
 }
