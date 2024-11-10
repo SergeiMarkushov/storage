@@ -26,27 +26,29 @@ function loadFileList() {
             const gallery = document.getElementById('gallery');
             gallery.innerHTML = '';
             files.forEach(file => {
-                const mediaCard = document.createElement('div');
-                mediaCard.classList.add('media-card');
+                if (file.category === "MEDIA") {
+                    const mediaCard = document.createElement('div');
+                    mediaCard.classList.add('media-card');
 
-                const fileExtension = file.originFileName.split('.').pop().toLowerCase();
-                if (fileExtension === 'mp4' || fileExtension === 'webm') {
-                    const video = document.createElement('video');
-                    video.src = host + 'api/v1/files/download/' + encodeURIComponent(file.uniqueFileName);
-                    console.log(video.src)
-                    video.controls = true;
-                    video.onclick = () => openModal('video', video.src, video);
-                    mediaCard.appendChild(video);
-                } else {
-                    const img = document.createElement('img');
-                    img.src = host + 'api/v1/files/download/' + encodeURIComponent(file.uniqueFileName);
-                    console.log(img.src)
-                    img.alt = file;
-                    img.onclick = () => openModal('image', img.src);
-                    mediaCard.appendChild(img);
+                    const fileExtension = file.originFileName.split('.').pop().toLowerCase();
+                    if (fileExtension === 'mp4' || fileExtension === 'webm') {
+                        const video = document.createElement('video');
+                        video.src = host + 'api/v1/files/download/' + encodeURIComponent(file.uniqueFileName);
+                        console.log(video.src)
+                        video.controls = true;
+                        video.onclick = () => openModal('video', video.src, video);
+                        mediaCard.appendChild(video);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = host + 'api/v1/files/download/' + encodeURIComponent(file.uniqueFileName);
+                        console.log(img.src)
+                        img.alt = file;
+                        img.onclick = () => openModal('image', img.src);
+                        mediaCard.appendChild(img);
+                    }
+
+                    gallery.appendChild(mediaCard);
                 }
-
-                gallery.appendChild(mediaCard);
             });
         })
         .catch(error => {

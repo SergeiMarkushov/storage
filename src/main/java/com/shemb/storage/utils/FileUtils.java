@@ -1,6 +1,7 @@
 package com.shemb.storage.utils;
 
 import com.shemb.storage.dtos.dto.StorageInfo;
+import com.shemb.storage.dtos.enums.FileCategory;
 import com.shemb.storage.exceptions.FileProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
@@ -106,7 +107,7 @@ public class FileUtils {
         }
     }
 
-    public static void decryptFile(Path inputFile, Path outputFile, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+    private static void decryptFile(Path inputFile, Path outputFile, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
 
@@ -140,5 +141,29 @@ public class FileUtils {
             }
         }
         tempPaths.clear();
+    }
+
+    /**
+     * Определение категории файла в зависимости от его расширения
+     * Предполагается расширять список расширений
+     * @param fileName имя файла
+     * @return возвращает enum FileCategory
+     */
+    public static FileCategory getCategory(String fileName) {
+        String ext = getFileExt(fileName);
+        return switch (ext) {
+            case "doc", "docx", "txt", "pdf", "html", "xlsx", "zip", "rar" -> FileCategory.DOCUMENT;
+            case "jpg", "jpeg", "png", "mp3", "mp4", "webm" -> FileCategory.MEDIA;
+            default -> FileCategory.UNDEFINED;
+        };
+    }
+
+    private static String getFileExt(String fileName) {
+        int index = fileName.lastIndexOf(".");
+        if (index > 0 && index < fileName.length() - 1) {
+            return fileName.substring(index + 1).toLowerCase();
+        } else {
+            throw new IllegalArgumentException("Файл без расширения: " + fileName);
+        }
     }
 }

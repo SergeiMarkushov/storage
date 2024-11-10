@@ -33,20 +33,30 @@ public class FileMetadata implements Serializable {
     String uniqueFileName;
     Long fileSize;
     String fileType;
+    Integer category;
     @CreationTimestamp
     OffsetDateTime uploadDate;
 
     public FileMetadata() {
     }
 
-    public FileMetadata(Long id, MyUser user, String originFileName, String uniqueFileName, Long fileSize, String fileType, OffsetDateTime uploadDate) {
+    public FileMetadata(Long id, MyUser user, String originFileName, String uniqueFileName, Long fileSize, String fileType, Integer category, OffsetDateTime uploadDate) {
         this.id = id;
         this.user = user;
         this.originFileName = originFileName;
         this.uniqueFileName = uniqueFileName;
         this.fileSize = fileSize;
         this.fileType = fileType;
+        this.category = category;
         this.uploadDate = uploadDate;
+    }
+
+    public Integer getCategory() {
+        return category;
+    }
+
+    public void setCategory(Integer category) {
+        this.category = category;
     }
 
     public String getOriginFileName() {

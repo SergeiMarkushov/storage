@@ -14,19 +14,29 @@ public class FileMetadataDto {
     String uniqueFileName;
     Long fileSize;
     String fileType;
+    String category;
     OffsetDateTime uploadDate;
 
     public FileMetadataDto() {
     }
 
-    public FileMetadataDto(Long id, MyUser user, String originFileName, String uniqueFileName, Long fileSize, String fileType, OffsetDateTime uploadDate) {
+    public FileMetadataDto(Long id, MyUser user, String originFileName, String uniqueFileName, Long fileSize, String fileType, String category, OffsetDateTime uploadDate) {
         this.id = id;
         this.user = user;
         this.originFileName = originFileName;
         this.uniqueFileName = uniqueFileName;
         this.fileSize = fileSize;
         this.fileType = fileType;
+        this.category = category;
         this.uploadDate = uploadDate;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public Long getId() {

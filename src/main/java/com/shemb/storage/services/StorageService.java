@@ -5,7 +5,7 @@ import com.shemb.storage.entities.EncryptionKey;
 import com.shemb.storage.entities.FileAction;
 import com.shemb.storage.entities.FileMetadata;
 import com.shemb.storage.entities.MyUser;
-import com.shemb.storage.enums.Action;
+import com.shemb.storage.dtos.enums.Action;
 import com.shemb.storage.exceptions.FileProcessingException;
 import com.shemb.storage.repositories.EncryptionKeyRepository;
 import com.shemb.storage.repositories.FileActionRepository;
@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.SecretKey;
 import java.util.List;
 
+import static com.shemb.storage.utils.FileUtils.getCategory;
 import static com.shemb.storage.utils.Utils.bytesToKey;
 import static com.shemb.storage.utils.Utils.generateKey;
 import static com.shemb.storage.utils.Utils.getUuid;
@@ -74,6 +75,7 @@ public class StorageService {
         fileMetadata.setUniqueFileName(uniqueFileName);
         fileMetadata.setFileSize(file.getSize());
         fileMetadata.setFileType(file.getContentType());
+        fileMetadata.setCategory(getCategory(file.getOriginalFilename()).getIntValue());
         fileMetadataRepository.save(fileMetadata);
         saveFileAction(fileMetadata, user, Action.SAVE, "Сохранен файл");
         return fileMetadata;
