@@ -2,7 +2,7 @@ package com.shemb.storage.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.shemb.storage.dtos.constants.TableNames;
-import com.shemb.storage.enums.Action;
+import com.shemb.storage.dtos.enums.Action;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;

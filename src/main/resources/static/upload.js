@@ -45,22 +45,25 @@ function loadFileList() {
             const fileList = document.getElementById('fileList');
             fileList.innerHTML = '';
             files.forEach(file => {
-                const listItem = document.createElement('li');
-                const link = document.createElement('a');
-                link.href = '#';
-                link.textContent = file.originFileName;
-                link.onclick = () => {
-                    console.log('Downloading file:', encodeURIComponent(file.uniqueFileName));
-                    downloadFile(file.uniqueFileName, file.originFileName);
-                };
+                console.log(file)
+                if (file.category !== "MEDIA") {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.textContent = file.originFileName;
+                    link.onclick = () => {
+                        console.log('Downloading file:', encodeURIComponent(file.uniqueFileName));
+                        downloadFile(file.uniqueFileName, file.originFileName);
+                    };
 
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.onclick = () => deleteFile(file);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = () => deleteFile(file);
 
-                listItem.appendChild(link);
-                listItem.appendChild(deleteButton);
-                fileList.appendChild(listItem);
+                    listItem.appendChild(link);
+                    listItem.appendChild(deleteButton);
+                    fileList.appendChild(listItem);
+                }
             });
         })
         .catch(error => {
