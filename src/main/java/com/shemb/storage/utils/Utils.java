@@ -6,6 +6,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -52,5 +53,14 @@ public class Utils {
 
     public static SecretKey bytesToKey(byte[] keyBytes) {
         return new SecretKeySpec(keyBytes, "AES");
+    }
+
+    public static String createResponseMsg(String msg, List<String> notAllowedFiles) {
+        StringBuilder message = new StringBuilder(msg);
+        for (String fileName : notAllowedFiles) {
+            message.append(fileName).append(", ");
+        }
+        message.setLength(message.length() - 2);
+        return message.toString();
     }
 }

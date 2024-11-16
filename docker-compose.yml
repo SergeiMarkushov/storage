@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  clamav:
+    image: clamav/clamav:latest
+    container_name: clamav
+    volumes:
+      - clamav_db:/var/lib/clamav
+      - ./config/clamd.conf:/etc/clamav/clamd.conf
+    ports:
+      - "3310:3310"
+    environment:
+      - FRESHCLAM_CONF_FILE=/etc/clamav/freshclam.conf
+
+volumes:
+  clamav_db:

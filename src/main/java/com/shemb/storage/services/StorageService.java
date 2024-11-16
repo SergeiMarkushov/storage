@@ -1,26 +1,27 @@
 package com.shemb.storage.services;
 
 import com.shemb.storage.dtos.dto.StorageInfo;
+import com.shemb.storage.dtos.enums.Action;
 import com.shemb.storage.entities.EncryptionKey;
 import com.shemb.storage.entities.FileAction;
 import com.shemb.storage.entities.FileMetadata;
 import com.shemb.storage.entities.MyUser;
-import com.shemb.storage.dtos.enums.Action;
 import com.shemb.storage.exceptions.FileProcessingException;
 import com.shemb.storage.repositories.EncryptionKeyRepository;
 import com.shemb.storage.repositories.FileActionRepository;
 import com.shemb.storage.repositories.FileMetadataRepository;
 import com.shemb.storage.utils.FileUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.shemb.storage.utils.FileUtils.getCategory;
+import static com.shemb.storage.utils.FileUtils.isScanFile;
 import static com.shemb.storage.utils.Utils.bytesToKey;
 import static com.shemb.storage.utils.Utils.generateKey;
 import static com.shemb.storage.utils.Utils.getUuid;
@@ -33,6 +34,7 @@ public class StorageService {
     private final FileMetadataRepository fileMetadataRepository;
     private final EncryptionKeyRepository encryptionKeyRepository;
     private final FileActionRepository fileActionRepository;
+    private final VirusScannerService virusScanner;
 
     public List<FileMetadata> getAllFiles(String username) {
         return fileMetadataRepository.findAllByUser(userService.findByUsername(username));
@@ -51,21 +53,30 @@ public class StorageService {
         return allFiles;
     }
 
-    public void uploadFile(MultipartFile[] files, String username) {
+    public List<String> uploadFile(MultipartFile[] files, String username) {
         MyUser user = userService.findByUsername(username);
+        List<String> infectedFiles = new ArrayList<>();
         for (MultipartFile file : files) {
-            String uuid = getUuid();
-            String uniqueFileName = file.getOriginalFilename() + "_" + uuid;
-            FileMetadata fileMetadata = saveFileMetadata(file, user, uniqueFileName);
-            uploadFile(file, fileMetadata, username, uniqueFileName);
+            if (isScanFile(file.getOriginalFilename())) {
+                if (!virusScanner.isFileInfected(file, username)) {
+                    infectedFiles.add(file.getOriginalFilename());
+                } else {
+                    uploadFile(file, user);
+                }
+            } else {
+                uploadFile(file, user);
+            }
         }
+        return infectedFiles;
     }
 
-    public Resource download(String filename, String username, HttpServletRequest request) {
+    public Resource download(String filename, String username) {
         FileMetadata fileMetadata = fileMetadataRepository.findByUniqueFileName(filename)
                 .orElseThrow(() -> new FileProcessingException("Файл с именем " + filename + " не найден"));
         SecretKey key = bytesToKey(encryptionKeyRepository.findByFile(fileMetadata).getEncryptionKey());
-        return FileUtils.download(fileMetadata.getUniqueFileName(), username, request, key);
+        Resource resource = FileUtils.download(fileMetadata.getUniqueFileName(), username, key);
+        saveFileAction(fileMetadata, userService.findByUsername(username), Action.DOWNLOAD, "Скачен файл");
+        return resource;
     }
 
     private FileMetadata saveFileMetadata(MultipartFile file, MyUser user, String uniqueFileName) {
@@ -81,9 +92,12 @@ public class StorageService {
         return fileMetadata;
     }
 
-    private void uploadFile(MultipartFile file, FileMetadata fileMetadata, String username, String uniqueFileName) {
+    private void uploadFile(MultipartFile file, MyUser user) {
+        String uuid = getUuid();
+        String uniqueFileName = file.getOriginalFilename() + "_" + uuid;
+        FileMetadata fileMetadata = saveFileMetadata(file, user, uniqueFileName);
         SecretKey key = generateKey();
-        FileUtils.upload(file, username, key, uniqueFileName);
+        FileUtils.upload(file, user.getUsername(), key, uniqueFileName);
         saveEncryptionKey(fileMetadata, key);
     }
 
