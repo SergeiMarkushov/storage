@@ -14,11 +14,11 @@ public enum FileCategory {
         this.intValue = intValue;
     }
 
-    public Integer getIntValue() {
-        return intValue;
-    }
-
     public static FileCategory byIntValue(Integer value) {
         return Arrays.stream(values()).filter(v -> Objects.equals(v.getIntValue(), value)).findFirst().orElse(UNDEFINED);
+    }
+
+    public Integer getIntValue() {
+        return intValue;
     }
 }

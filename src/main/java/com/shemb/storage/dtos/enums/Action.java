@@ -7,7 +7,8 @@ public enum Action {
     UNDEFINED(0),
     SAVE(1),
     ALLOW(2),
-    DELETE(3);
+    DELETE(3),
+    DOWNLOAD(4);
 
     private final Integer intValue;
 
@@ -15,11 +16,11 @@ public enum Action {
         this.intValue = intValue;
     }
 
-    public Integer getIntValue() {
-        return intValue;
-    }
-
     public static Action byIntValue(Integer value) {
         return Arrays.stream(values()).filter(v -> Objects.equals(v.getIntValue(), value)).findFirst().orElse(UNDEFINED);
+    }
+
+    public Integer getIntValue() {
+        return intValue;
     }
 }
