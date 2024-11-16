@@ -5,7 +5,6 @@ import com.shemb.storage.dtos.dto.FileMetadataDto;
 import com.shemb.storage.dtos.dto.StorageInfo;
 import com.shemb.storage.exceptions.FileProcessingException;
 import com.shemb.storage.services.StorageService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +23,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.shemb.storage.utils.Utils.createResponseMsg;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,15 +46,19 @@ public class FileController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files) {
-        storageService.uploadFile(files, "Nik");
-        return ResponseEntity.ok("Файл успешно загружен");
+        List<String> notAllowedFiles = storageService.uploadFile(files, "Nik");
+        if (notAllowedFiles.isEmpty()) {
+            return ResponseEntity.ok("Файлы успешно загружены");
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(createResponseMsg("Файлы заражены вирусом и запрещены для хранения: ", notAllowedFiles));
     }
 
     @GetMapping("/download/{filename}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String filename, HttpServletRequest request) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
         try {
             String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8);
-            Resource resource = storageService.download(filename, "Nik", request);
+            Resource resource = storageService.download(filename, "Nik");
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFilename + "\"")

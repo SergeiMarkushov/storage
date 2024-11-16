@@ -27,10 +27,10 @@ function uploadFiles() {
 
     xhr.onload = function () {
         if (xhr.status === 200) {
-            document.getElementById('uploadStatus').textContent = 'Files uploaded successfully';
+            document.getElementById('uploadStatus').textContent = xhr.responseText;
             loadFileList();
         } else {
-            document.getElementById('uploadStatus').textContent = 'Failed to upload files';
+            document.getElementById('uploadStatus').textContent = xhr.responseText;
         }
         uploadProgressBar.style.display = 'none';
     };
@@ -45,7 +45,6 @@ function loadFileList() {
             const fileList = document.getElementById('fileList');
             fileList.innerHTML = '';
             files.forEach(file => {
-                console.log(file)
                 if (file.category !== "MEDIA") {
                     const listItem = document.createElement('li');
                     const link = document.createElement('a');

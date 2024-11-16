@@ -70,6 +70,21 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.21</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.junrar</groupId>
+            <artifactId>junrar</artifactId>
+            <version>7.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.sensesecure</groupId>
+            <artifactId>clamav4j</artifactId>
+            <version>0.6</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>

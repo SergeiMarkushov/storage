@@ -3,7 +3,6 @@ package com.shemb.storage.utils;
 import com.shemb.storage.dtos.dto.StorageInfo;
 import com.shemb.storage.dtos.enums.FileCategory;
 import com.shemb.storage.exceptions.FileProcessingException;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +12,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentMap;
 public class FileUtils {
     private static final ConcurrentMap<String, Path> tempPaths = new ConcurrentHashMap<>();
 
-    public static Path createDir(String username) {
+    private static Path createDir(String username) {
         String userHome = System.getProperty("user.home");
         Path userDir = Paths.get(userHome, "uploads", username);
         try {
@@ -54,7 +54,7 @@ public class FileUtils {
         }
     }
 
-    public static Resource download(String filename, String username, HttpServletRequest request, SecretKey key) {
+    public static Resource download(String filename, String username, SecretKey key) {
         try {
             Path userDir = createDir(username);
             Path filePath = userDir.resolve(Objects.requireNonNull(filename));
@@ -144,8 +144,10 @@ public class FileUtils {
     }
 
     /**
+     * Метод больше для того, чтобы отделить медиа файлы от остальных.
      * Определение категории файла в зависимости от его расширения
      * Предполагается расширять список расширений
+     *
      * @param fileName имя файла
      * @return возвращает enum FileCategory
      */
@@ -164,6 +166,44 @@ public class FileUtils {
             return fileName.substring(index + 1).toLowerCase();
         } else {
             throw new IllegalArgumentException("Файл без расширения: " + fileName);
+        }
+    }
+
+    /**
+     * Метод получает расширение файла и проверяет есть ли в списке указанных
+     * расширений, которые необходимо просканировать
+     *
+     * @param fileName имя файла
+     * @return возвращает true для потенциально опасных файлов
+     */
+    public static boolean isScanFile(String fileName) {
+        String ext = getFileExt(fileName);
+        return switch (ext) {
+            case "exe", "com", "bat", "cmd", "scr", "pif", "gadget", "msi", "msp", "sh", "js", "vbs", "wsf",
+                    "ps1", "java", "class", "php", "py", "pl", "rb", "docm", "dotm", "xlsm", "xltm", "pptm",
+                    "potm", "rar", "zip", "7z", "iso", "inf", "hta", "html" -> true;
+            default -> false;
+        };
+    }
+
+    public static Path createQuarantineDir(String username) throws IOException {
+        Path quarantineDir = Paths.get("quarantine", username);
+        if (Files.notExists(quarantineDir)) {
+            Files.createDirectories(quarantineDir);
+        }
+        return quarantineDir;
+    }
+
+    public static void deleteFiles(File directory) {
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) {
+                        file.delete();
+                    }
+                }
+            }
         }
     }
 }
