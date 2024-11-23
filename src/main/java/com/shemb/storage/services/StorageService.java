@@ -37,7 +37,7 @@ public class StorageService {
     private final VirusScannerService virusScanner;
 
     public List<FileMetadata> getAllFiles(String username) {
-        return fileMetadataRepository.findAllByUser(userService.findByUsername(username));
+        return fileMetadataRepository.findAllByUserAndDeleted(userService.findByUsername(username), false);
     }
 
     /**
@@ -71,12 +71,34 @@ public class StorageService {
     }
 
     public Resource download(String filename, String username) {
-        FileMetadata fileMetadata = fileMetadataRepository.findByUniqueFileName(filename)
-                .orElseThrow(() -> new FileProcessingException("Файл с именем " + filename + " не найден"));
+        FileMetadata fileMetadata = getFileMetadata(filename);
         SecretKey key = bytesToKey(encryptionKeyRepository.findByFile(fileMetadata).getEncryptionKey());
         Resource resource = FileUtils.download(fileMetadata.getUniqueFileName(), username, key);
         saveFileAction(fileMetadata, userService.findByUsername(username), Action.DOWNLOAD, "Скачен файл");
         return resource;
+    }
+
+    public void delete(String filename, String username) {
+        FileMetadata fileMetadata = getFileMetadata(filename);
+        MyUser user = userService.findByUsername(username);
+        if (!user.equals(fileMetadata.getUser())) {
+            String message = String.format("Попытка удалить не собственный файл %s пользователем %s", filename, username);
+            saveFileAction(fileMetadata, user, Action.ERROR_DELETE, message);
+            throw new RuntimeException(message);
+        }
+        if (fileMetadata.getDeleted()) {
+            String message = String.format("Файл %s уже был удален!", filename);
+            saveFileAction(fileMetadata, user, Action.ERROR_DELETE, message);
+            throw new RuntimeException(message);
+        }
+        FileUtils.delete(fileMetadata.getUniqueFileName(), username);
+        fileMetadata.setDeleted(true);
+        saveFileAction(fileMetadata, user, Action.DELETE, "Удален файл");
+    }
+
+    private FileMetadata getFileMetadata(String filename) {
+        return fileMetadataRepository.findByUniqueFileName(filename)
+                .orElseThrow(() -> new FileProcessingException("Файл с именем " + filename + " не найден"));
     }
 
     private FileMetadata saveFileMetadata(MultipartFile file, MyUser user, String uniqueFileName) {
@@ -87,6 +109,7 @@ public class StorageService {
         fileMetadata.setFileSize(file.getSize());
         fileMetadata.setFileType(file.getContentType());
         fileMetadata.setCategory(getCategory(file.getOriginalFilename()).getIntValue());
+        fileMetadata.setDeleted(false);
         fileMetadataRepository.save(fileMetadata);
         saveFileAction(fileMetadata, user, Action.SAVE, "Сохранен файл");
         return fileMetadata;

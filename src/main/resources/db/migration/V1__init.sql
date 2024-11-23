@@ -22,6 +22,7 @@ create table if not exists cloud_storage.file_metadata
     file_size        bigint       not null,
     file_type        varchar(255),
     category         bigint       not null,
+    deleted          boolean,
     upload_date      timestamp with time zone default now(),
     foreign key (user_id) references my_users (id)
 );
@@ -37,6 +38,7 @@ comment on column cloud_storage.file_metadata.unique_file_name is 'Уникал�
 comment on column cloud_storage.file_metadata.file_size is 'Размер файла';
 comment on column cloud_storage.file_metadata.file_type is 'Тип файла';
 comment on column cloud_storage.file_metadata.category is 'Категория файла';
+comment on column cloud_storage.file_metadata.deleted is 'Метка при удалении файла';
 comment on column cloud_storage.file_metadata.upload_date is 'Дата и время сохранения файла';
 
 create table if not exists cloud_storage.allowed_files

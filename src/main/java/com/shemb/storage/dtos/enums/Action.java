@@ -8,7 +8,8 @@ public enum Action {
     SAVE(1),
     ALLOW(2),
     DELETE(3),
-    DOWNLOAD(4);
+    DOWNLOAD(4),
+    ERROR_DELETE(5);
 
     private final Integer intValue;
 
