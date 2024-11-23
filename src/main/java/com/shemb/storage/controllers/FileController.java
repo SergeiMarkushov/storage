@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,14 +34,21 @@ public class FileController {
     private final StorageService storageService;
     private final FileMetadataConverter fileMetadataConverter;
 
-    @GetMapping
-    public ResponseEntity<List<FileMetadataDto>> listFiles() {
+    @GetMapping("/documents")
+    public ResponseEntity<List<FileMetadataDto>> getDocumentsList() {
         List<FileMetadataDto> list = storageService.getAllFilesAndAllowed("Nik").stream()
                 .map(fileMetadataConverter::entityToDto)
+                .filter(file -> !file.getCategory().equals("MEDIA"))
                 .collect(Collectors.toList());
-        if (list.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/media")
+    public ResponseEntity<List<FileMetadataDto>> getMediaList() {
+        List<FileMetadataDto> list = storageService.getAllFilesAndAllowed("Nik").stream()
+                .map(fileMetadataConverter::entityToDto)
+                .filter(file -> file.getCategory().equals("MEDIA"))
+                .collect(Collectors.toList());
         return ResponseEntity.ok(list);
     }
 
@@ -68,23 +76,16 @@ public class FileController {
         }
     }
 
-    /**
-     * не поддержан в текущей версии
-     */
-//    @DeleteMapping("/delete/{filename}")
-//    public ResponseEntity<String> deleteFile(@PathVariable String filename) {
-//        try {
-//            Path filePath = Paths.get("uploads/" + filename);
-//            if (Files.exists(filePath)) {
-//                Files.delete(filePath);
-//                return ResponseEntity.ok("File deleted successfully");
-//            } else {
-//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found");
-//            }
-//        } catch (IOException e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting file");
-//        }
-//    }
+    @DeleteMapping("/delete/{filename}")
+    public ResponseEntity<String> deleteFile(@PathVariable String filename) {
+        try {
+            storageService.delete(filename, "Nik");
+            return ResponseEntity.ok("File deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
     @GetMapping("/storage-info")
     public StorageInfo getStorageInfo() {
         return storageService.getStorageInfo();
