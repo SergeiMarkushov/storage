@@ -15,7 +15,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import static com.shemb.storage.utils.FileUtils.createQuarantineDir;
+import static com.shemb.storage.dtos.constants.Const.QUARANTINE;
+import static com.shemb.storage.utils.FileUtils.createDir;
 import static com.shemb.storage.utils.FileUtils.deleteFiles;
 
 @Service
@@ -28,7 +29,7 @@ public class VirusScannerService {
     public boolean isFileInfected(MultipartFile file, String username) {
         Path quarantineDir = null;
         try {
-            quarantineDir = createQuarantineDir(username);
+            quarantineDir = createDir(username, QUARANTINE);
             Path filePath = quarantineDir.resolve(Objects.requireNonNull(file.getOriginalFilename()));
 
             if (!Files.exists(filePath)) {

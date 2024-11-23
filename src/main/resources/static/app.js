@@ -20,12 +20,13 @@ function loadStorageInfo() {
 }
 
 function loadFileList() {
-    fetch(host + 'api/v1/files')
+    fetch(host + 'api/v1/files/media')
         .then(response => response.json())
         .then(files => {
             const gallery = document.getElementById('gallery');
             gallery.innerHTML = '';
             files.forEach(file => {
+                console.log(file)
                 if (file.category === "MEDIA") {
                     const mediaCard = document.createElement('div');
                     mediaCard.classList.add('media-card');

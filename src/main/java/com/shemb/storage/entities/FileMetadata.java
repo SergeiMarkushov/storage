@@ -34,13 +34,14 @@ public class FileMetadata implements Serializable {
     Long fileSize;
     String fileType;
     Integer category;
+    Boolean deleted;
     @CreationTimestamp
     OffsetDateTime uploadDate;
 
     public FileMetadata() {
     }
 
-    public FileMetadata(Long id, MyUser user, String originFileName, String uniqueFileName, Long fileSize, String fileType, Integer category, OffsetDateTime uploadDate) {
+    public FileMetadata(Long id, MyUser user, String originFileName, String uniqueFileName, Long fileSize, String fileType, Integer category, Boolean deleted, OffsetDateTime uploadDate) {
         this.id = id;
         this.user = user;
         this.originFileName = originFileName;
@@ -48,7 +49,16 @@ public class FileMetadata implements Serializable {
         this.fileSize = fileSize;
         this.fileType = fileType;
         this.category = category;
+        this.deleted = deleted;
         this.uploadDate = uploadDate;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 
     public Integer getCategory() {
