@@ -39,30 +39,27 @@ function uploadFiles() {
 }
 
 function loadFileList() {
-    fetch(host + 'api/v1/files')
+    fetch(host + 'api/v1/files/documents')
         .then(response => response.json())
         .then(files => {
             const fileList = document.getElementById('fileList');
             fileList.innerHTML = '';
             files.forEach(file => {
-                if (file.category !== "MEDIA") {
-                    const listItem = document.createElement('li');
-                    const link = document.createElement('a');
-                    link.href = '#';
-                    link.textContent = file.originFileName;
-                    link.onclick = () => {
-                        console.log('Downloading file:', encodeURIComponent(file.uniqueFileName));
-                        downloadFile(file.uniqueFileName, file.originFileName);
-                    };
+                const listItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = '#';
+                link.textContent = file.originFileName;
+                link.onclick = () => {
+                    downloadFile(file.uniqueFileName, file.originFileName);
+                };
 
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.onclick = () => deleteFile(file);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteFile(file.uniqueFileName);
 
-                    listItem.appendChild(link);
-                    listItem.appendChild(deleteButton);
-                    fileList.appendChild(listItem);
-                }
+                listItem.appendChild(link);
+                listItem.appendChild(deleteButton);
+                fileList.appendChild(listItem);
             });
         })
         .catch(error => {
@@ -72,7 +69,6 @@ function loadFileList() {
 
 function downloadFile(uniqueFileName, originFileName) {
     const url = host + 'api/v1/files/download/' + uniqueFileName;
-    console.log(uniqueFileName)
     const downloadProgressBar = document.getElementById('downloadProgressBar');
     downloadProgressBar.style.display = 'block';
 

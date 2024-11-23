@@ -24,30 +24,47 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static com.shemb.storage.dtos.constants.Const.QUARANTINE;
+import static com.shemb.storage.dtos.constants.Const.UPLOADS;
+
 //@UtilityClass
 public class FileUtils {
-    private static final ConcurrentMap<String, Path> tempPaths = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<LocalDateTime, Path> tempPaths = new ConcurrentHashMap<>();
+    private static final Path uploadsDir = Paths.get(System.getProperty("user.home"), UPLOADS);
+    private static final Path quarantineDir = Paths.get(QUARANTINE);
 
-    private static Path createDir(String username) {
-        String userHome = System.getProperty("user.home");
-        Path userDir = Paths.get(userHome, "uploads", username);
-        try {
-            if (Files.notExists(userDir)) {
-                Files.createDirectories(userDir);
-            }
-        } catch (IOException e) {
-            throw new FileProcessingException("Ошибка создания директории пользователя");
+    /**
+     * Метод создает папку в корне проекта или в домашней директории.
+     * Поддержаны папки для хранения файлов пользователя и карантин
+     *
+     * @param username Имя пользователя
+     * @param folder   название папки
+     * @return возвращает созданную директорию
+     */
+    public static Path createDir(String username, String folder) throws IOException {
+        Path directory = null;
+        switch (folder) {
+            case QUARANTINE -> directory = quarantineDir.resolve(username);
+            case UPLOADS -> directory = uploadsDir.resolve(username);
         }
-        return userDir;
+        if (Files.notExists(directory)) {
+            Files.createDirectories(directory);
+        }
+        return directory;
     }
 
     public static void upload(MultipartFile file, String username, SecretKey key, String uniqueFileName) {
         try {
-            Path path = createDir(username).resolve(Objects.requireNonNull(uniqueFileName));
+            Path path = createDir(username, UPLOADS).resolve(Objects.requireNonNull(uniqueFileName));
             encryptFile(file.getInputStream(), path, key);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IOException e) {
             throw new FileProcessingException("Ошибка сохранения файла");
@@ -56,10 +73,10 @@ public class FileUtils {
 
     public static Resource download(String filename, String username, SecretKey key) {
         try {
-            Path userDir = createDir(username);
+            Path userDir = createDir(username, UPLOADS);
             Path filePath = userDir.resolve(Objects.requireNonNull(filename));
             Path tempFilePath = userDir.resolve("temp-" + Objects.requireNonNull(filename));
-            addTempPath(filename, tempFilePath);
+            addTempPath(LocalDateTime.now(), tempFilePath);
             decryptFile(filePath, tempFilePath, key);
             return new UrlResource(tempFilePath.toUri());
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IOException e) {
@@ -67,16 +84,31 @@ public class FileUtils {
         }
     }
 
+    private static void delete(Path path) {
+        try {
+            delete(null, null, path);
+        } catch (IOException e) {
+            throw new FileProcessingException("Файл " + path.toString() + " не найден");
+        }
+    }
+
     public static void delete(String filename, String username) {
         try {
-            Path path = createDir(username).resolve(Objects.requireNonNull(filename));
-            if (Files.exists(path)) {
-                Files.delete(path);
-            } else {
-                throw new FileProcessingException("Файл не найден");
-            }
+            delete(filename, username, null);
         } catch (IOException e) {
-            throw new FileProcessingException("Ошибка удаления файла");
+            throw new FileProcessingException("Файл " + filename + " не найден");
+        }
+    }
+
+    private static void delete(String filename, String username, Path path) throws IOException {
+        Path deletePath;
+        if (path != null) {
+            deletePath = path;
+        } else {
+            deletePath = createDir(username, UPLOADS).resolve(Objects.requireNonNull(filename));
+        }
+        if (Files.exists(deletePath)) {
+            Files.delete(deletePath);
         }
     }
 
@@ -126,21 +158,21 @@ public class FileUtils {
         }
     }
 
-    private static void addTempPath(String key, Path path) {
-        tempPaths.put(key, path);
+    private static void addTempPath(LocalDateTime key, Path path) {
+        if (!tempPaths.containsValue(path)) {
+            tempPaths.put(key, path);
+        }
     }
 
     public static void deleteTempPaths() {
-        for (Path tempPath : tempPaths.values()) {
-            if (tempPath != null) {
-                try {
-                    Files.delete(tempPath);
-                } catch (IOException e) {
-                    throw new FileProcessingException("Ошибка удаления копии файла " + tempPath);
-                }
+        long time = 5;
+        for (Map.Entry<LocalDateTime, Path> entry : tempPaths.entrySet()) {
+            if (entry.getKey().plusMinutes(time).isBefore(LocalDateTime.now())) {
+                System.out.println("key: " + entry.getKey() + "  |  value " + entry.getValue());
+                delete(entry.getValue());
+                tempPaths.remove(entry.getKey());
             }
         }
-        tempPaths.clear();
     }
 
     /**
@@ -186,23 +218,55 @@ public class FileUtils {
         };
     }
 
-    public static Path createQuarantineDir(String username) throws IOException {
-        Path quarantineDir = Paths.get("quarantine", username);
-        if (Files.notExists(quarantineDir)) {
-            Files.createDirectories(quarantineDir);
-        }
-        return quarantineDir;
-    }
-
+    /**
+     * Метод для удаления всех файлов в переданной директории
+     *
+     * @param directory директория, в которой нужно удалить все файлы
+     */
     public static void deleteFiles(File directory) {
         if (directory.isDirectory()) {
-            File[] files = directory.listFiles();
+            deleteFiles(directory.listFiles());
+        }
+    }
+
+    private static void deleteFiles(File[] files) {
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    file.delete();
+                }
+            }
+        }
+    }
+
+    private static List<Path> findTempFiles() {
+        Queue<File> folders = new LinkedList<>();
+        folders.add(new File(String.valueOf(uploadsDir)));
+        List<Path> tempFiles = null;
+        while (!folders.isEmpty()) {
+            File folder = folders.poll();
+            File[] files = folder.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile()) {
-                        file.delete();
+                    if (file.getName().startsWith("temp_")) {
+                        tempFiles.add(file.toPath());
                     }
                 }
+            }
+        }
+        return tempFiles;
+    }
+
+    /**
+     * Метод для того, чтобы удалять файлы, которые отсутствуют с мапе на удаление.
+     * Этот метод будет дергать шедуллер, по расписанию. Метод получает список временных
+     * файлов из папки uploads, затем проверяет, что этих файлов нет в мапе на удаление
+     * и удаляет те, которых нет.
+     */
+    public static void deleteTempFiles() {
+        for (Path tempPath : Objects.requireNonNull(findTempFiles())) {
+            if (!tempPaths.containsValue(tempPath)) {
+                delete(tempPath);
             }
         }
     }

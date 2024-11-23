@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
-    List<FileMetadata> findAllByUser(MyUser user);
+    List<FileMetadata> findAllByUserAndDeleted(MyUser user, Boolean deleted);
 
     Optional<FileMetadata> findByUniqueFileName(String fileName);
 }
